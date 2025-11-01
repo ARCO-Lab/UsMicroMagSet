@@ -673,8 +673,15 @@ class MultirobotDatasetBuilder:
                 self.stats["augmented"] += 1
 
     def _write_manifest(self) -> None:
-        yaml_name = self.config.dataset.yaml_filename or f"{self.config.dataset.name}.yaml"
-        manifest_path = self.output_root / yaml_name
+        yaml_name = self.config.dataset.yaml_filename
+        if yaml_name:
+            yaml_path = Path(yaml_name)
+            if yaml_path.is_absolute():
+                manifest_path = yaml_path
+            else:
+                manifest_path = self.dataset_dir / yaml_path
+        else:
+            manifest_path = self.dataset_dir / "dataset.yaml"
         payload: Dict[str, Any] = {
             "microrobot_type": self.config.dataset.name,
             "nc": 1,
