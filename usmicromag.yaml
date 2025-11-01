@@ -1,0 +1,13 @@
+# Base dataset configuration for the USMicroMag dataset.
+# The training CLI rewrites the train/val/test fields at runtime based on
+# the requested microrobot type. The relative paths act as defaults for
+# local runs without overrides.
+
+microrobot_type: flagella
+
+train: data/flagella/images/train
+val: data/flagella/images/val
+test: data/flagella/images/test
+
+nc: 1
+names: ["microrobot"]
