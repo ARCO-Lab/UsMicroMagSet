@@ -8,6 +8,7 @@ dataset:
     train: 0.8
     val: 0.1
     test: 0.1
+  shuffle: false              # set to false to keep sorted order when applying split ratios
   shuffle_seed: 42
   naming:
     delimiter: "__"
