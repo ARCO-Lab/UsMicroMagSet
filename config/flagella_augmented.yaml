@@ -1,5 +1,5 @@
 dataset:
-  name: flagella
+  name: flagella_sorted
   output_root: .
   copy_mode: copy            # copy | symlink
   include_original: true
