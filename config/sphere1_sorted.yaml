@@ -1,0 +1,19 @@
+dataset:
+  name: sphere1_sorted
+  output_root: .
+  copy_mode: copy            # copy | symlink
+  include_original: true
+  overwrite: false
+  split_ratios:
+    train: 0.8
+    val: 0.1
+    test: 0.1
+  shuffle: false              # set to false to keep sorted order when applying split ratios
+  shuffle_seed: 42
+  naming:
+    delimiter: "__"
+    force_lowercase: true
+
+sources:
+  - microrobot: sphere1
+    splits: [train, val, test]
