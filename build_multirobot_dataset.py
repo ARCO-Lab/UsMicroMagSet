@@ -146,21 +146,33 @@ class MultirobotDatasetBuilder:
             rng = random.Random(self.shuffle_seed)
             rng.shuffle(samples)
         else:
-            samples.sort(
-                key=lambda s: (
-                    s.image_path.name.lower(),
-                    s.microrobot.lower(),
-                    s.source_split.lower(),
-                    str(s.image_path.parent).lower(),
-                )
-            )
-        total = len(samples)
+            samples.sort(key=self._sample_sort_key)
+
+        grouped: Dict[str, List[Sample]] = {}
+        for sample in samples:
+            grouped.setdefault(sample.microrobot, []).append(sample)
+        for subset in grouped.values():
+            self._assign_subset_by_ratio(subset)
+
+    @staticmethod
+    def _sample_sort_key(sample: Sample) -> tuple:
+        return (
+            sample.image_path.name.lower(),
+            sample.microrobot.lower(),
+            sample.source_split.lower(),
+            str(sample.image_path.parent).lower(),
+        )
+
+    def _assign_subset_by_ratio(self, subset: List[Sample]) -> None:
+        if not subset:
+            return
+        total = len(subset)
         total_ratio = self.total_ratio or 0.0
         if total_ratio <= 0.0:
             raise ValueError("split ratios must sum to a positive value.")
+        splits = self.config.dataset.splits
         allocations: Dict[str, int] = {}
         remaining = total
-        splits = self.config.dataset.splits
         for idx, split in enumerate(splits):
             ratio = self.split_ratios.get(split, 0.0)
             if idx == len(splits) - 1:
@@ -173,21 +185,18 @@ class MultirobotDatasetBuilder:
         if remaining != 0:
             allocations[splits[-1]] = allocations.get(splits[-1], 0) + remaining
 
-        assigned_counts = {split: 0 for split in splits}
         cursor = 0
         for split in splits:
             count = allocations.get(split, 0)
+            if count <= 0:
+                continue
             for _ in range(count):
-                if cursor >= len(samples):
+                if cursor >= len(subset):
                     break
-                samples[cursor].target_split = split
-                assigned_counts[split] += 1
+                subset[cursor].target_split = split
                 cursor += 1
-
-        while cursor < len(samples):
-            last_split = splits[-1]
-            samples[cursor].target_split = last_split
-            assigned_counts[last_split] += 1
+        while cursor < len(subset):
+            subset[cursor].target_split = splits[-1]
             cursor += 1
 
     def _prepare_output_dirs(self) -> None:
